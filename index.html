@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FixIt Website</title>
+
+  <style>
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    body{
+      height:100vh;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      flex-direction:column;
+      color:white;
+      overflow:hidden;
+
+      /* animated gradient */
+      background: linear-gradient(-45deg,#4facfe,#00f2fe,#667eea,#764ba2);
+      background-size:400% 400%;
+      animation: gradient 10s ease infinite;
+    }
+
+    @keyframes gradient{
+      0%{background-position:0% 50%;}
+      50%{background-position:100% 50%;}
+      100%{background-position:0% 50%;}
+    }
+
+    h1{
+      font-size:55px;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    p{
+      font-size:20px;
+      margin-top:10px;
+      opacity:0.9;
+    }
+
+    @keyframes float{
+      0%,100%{transform:translateY(0);}
+      50%{transform:translateY(-15px);}
+    }
+
+    .btn{
+      margin-top:25px;
+      padding:12px 25px;
+      border:none;
+      border-radius:30px;
+      font-size:16px;
+      cursor:pointer;
+      background:white;
+      color:#333;
+      transition:0.3s;
+    }
+
+    .btn:hover{
+      transform:scale(1.1);
+    }
+
+    .icons{
+      margin-top:40px;
+      font-size:40px;
+      animation: float 4s infinite;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>🚀 FixIt Website</h1>
+  <p>Your website is Live on Mobile & Laptop</p>
+
+  <button class="btn">Get Started</button>
+
+  <div class="icons">
+    ⚙️ 🔧 💻 🌐
+  </div>
+
+</body>
+</html>
