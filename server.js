@@ -1,6 +1,5 @@
-/* =========================
+[1:22 am, 06/02/2026] ujjawal jha: /* =========================
    FIXIT PRO - ALL IN ONE
-   Full Professional App
 ========================= */
 
 const express = require("express");
@@ -17,101 +16,14 @@ const SECRET = "fixit-secret";
 
 mongoose.connect("mongodb://127.0.0.1:27017/fixitUltimate");
 
-const User = mongoose.model("User", {
-  name:String,
-  email:String,
-  password:String,
-  role:{type:String,default:"user"}
-});
-
-const Provider = mongoose.model("Provider",{
-  name:String,
-  phone:String,
-  service:String,
-  lat:Number,
-  lng:Number,
-  rating:{type:Number,default:5}
-});
-
-const Review = mongoose.model("Review",{
-  providerId:String,
-  rating:Number,
-  comment:String
-});
-
-/* ================= AUTH ================= */
-
-function auth(req,res,next){
-  const token=req.headers.authorization;
-  if(!token) return res.sendStatus(401);
-  req.user=jwt.verify(token,SECRET);
-  next();
-}
-
-/* ================= AUTH ROUTES ================= */
-
-app.post("/signup", async(req,res)=>{
-  const hash=await bcrypt.hash(req.body.password,10);
-  await User.create({...req.body,password:hash});
-  res.send("ok");
-});
-
-app.post("/login", async(req,res)=>{
-  const u=await User.findOne({email:req.body.email});
-  if(!u) return res.sendStatus(401);
-
-  const ok=await bcrypt.compare(req.body.password,u.password);
-  if(!ok) return res.sendStatus(401);
-
-  const token=jwt.sign({id:u._id,role:u.role},SECRET);
-  res.json({token});
-});
-
-/* ================= PROVIDERS ================= */
-
-app.post("/provider",auth,async(req,res)=>{
-  await Provider.create(req.body);
-  res.send("added");
-});
-
-app.get("/providers",async(req,res)=>{
-  const list=await Provider.find({service:req.query.service}).sort({rating:-1});
-  res.json(list);
-});
-
-/* ================= REVIEWS ================= */
-
-app.post("/review",auth,async(req,res)=>{
-  await Review.create(req.body);
-
-  const all=await Review.find({providerId:req.body.providerId});
-  const avg=all.reduce((a,b)=>a+b.rating,0)/all.length;
-
-  await Provider.findByIdAndUpdate(req.body.providerId,{rating:avg});
-
-  res.send("review added");
-});
-
-/* ================= ADMIN ================= */
-
-app.get("/admin",auth,async(req,res)=>{
-  if(req.user.role!=="admin") return res.sendStatus(403);
-
-  res.json({
-    users:await User.countDocuments(),
-    providers:await Provider.countDocuments(),
-    reviews:await Review.countDocuments()
-  });
-});
-
 /* ================= FRONTEND ================= */
 
-app.get("/",(req,res)=>{
+app.get("/", (req, res) => {
 res.send(`
 <!DOCTYPE html>
 <html>
 <head>
-<title>FIXIT Pro</title>
+<title>FIXIT PRO</title>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -126,45 +38,28 @@ res.send(`
   font-family:'Segoe UI',sans-serif;
 }
 
-/* ===== GRADIENT BG ===== */
+/* ===== GRADIENT BACKGROUND ===== */
 body{
   height:100vh;
-  background:linear-gradient(135deg,#00c6ff,#0072ff);
+  background:linear-gradient(135deg,#667eea,#764ba2);
   display:flex;
   justify-content:center;
   align-items:center;
+  overflow:hidden;
 }
 
-/* ===== GLASS APP ===== */
+/* ===== GLASS CARD ===== */
 .app{
   width:95%;
   max-width:1200px;
-  height:92vh;
-
+  height:95vh;
   background:rgba(255,255,255,.12);
-  backdrop-filter:blur(18px);
-
+  backdrop-filter:blur(25px);
   border-radius:25px;
-  box-shadow:0 25px 60px rgba(0,0,0,.4);
-
   padding:25px;
   color:white;
+  box-shadow:0 25px 60px rgba(0,0,0,.5);
   overflow:auto;
-}
-
-/* ===== HERO IMAGE ===== */
-.hero{
-  width:100%;
-  height:180px;
-  border-radius:18px;
-  overflow:hidden;
-  margin-bottom:20px;
-}
-
-.hero img{
-  width:100%;
-  height:100%;
-  object-fit:cover;
 }
 
 /* ===== HEADER ===== */
@@ -172,16 +67,57 @@ body{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  margin-bottom:20px;
+  margin-bottom:25px;
 }
 
 .logo{
   font-size:28px;
   font-weight:bold;
+  letter-spacing:2px;
+}
+
+.btn{
+  background:#00f2fe;
+  border:none;
+  padding:10px 18px;
+  border-radius:12px;
+  cursor:pointer;
+  font-weight:bold;
+  transition:.3s;
+}
+
+.btn:hover{
+  transform:scale(1.1);
+}
+
+/* ===== GRID ===== */
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  gap:20px;
+}
+
+/* ===== CARDS ===== */
+.card{
+  background:rgba(255,255,255,.18);
+  border-radius:18px;
+  padding:20px;
+  text-align:center;
+  transition:.3s;
+}
+
+.card:hover{
+  transform:translateY(-8px);
+}
+
+.icon{
+  font-size:50px;
+  margin-bottom:10px;
 }
 
 /* ===== SEARCH ===== */
 .search{
+  margin:20px 0;
   display:flex;
   gap:10px;
 }
@@ -190,47 +126,7 @@ input,select{
   padding:10px;
   border-radius:10px;
   border:none;
-}
-
-button{
-  padding:10px 15px;
-  border:none;
-  border-radius:10px;
-  background:#00f2fe;
-  font-weight:bold;
-  cursor:pointer;
-}
-
-/* ===== GRID ===== */
-.grid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:20px;
-}
-
-.card{
-  background:rgba(255,255,255,.18);
-  padding:20px;
-  border-radius:18px;
-}
-
-.service{
-  display:flex;
-  gap:10px;
-  padding:10px;
-  margin:8px 0;
-  background:white;
-  color:black;
-  border-radius:10px;
-}
-
-.material-icons{
-  font-size:22px;
-}
-
-#map{
-  height:300px;
-  border-radius:15px;
+  flex:1;
 }
 
 </style>
@@ -240,54 +136,264 @@ button{
 
 <div class="app">
 
-  <!-- 🔥 HERO IMAGE ADDED HERE -->
-  <div class="hero">
-    <img src="https://www.istockphoto.com/photos/beautiful-plumber">
+<div class="header">
+  <div class="logo">🔧 FIXIT PRO</div>
+  <button class="btn">Login</button>
+</div>
+
+<h2>Find Trusted Services Near You</h2>
+
+<div class="search">
+  <select>
+    <option>Plumber</option>
+    <option>Electrician</option>
+    <option>AC Repair</option>
+    <option>Carpenter</option>
+  </select>
+  <input placeholder="Enter location">
+  <button class="btn">Search</button>
+</div>
+
+<div class="grid">
+
+  <div class="card">
+    <span class="material-icons icon">plumbing</span>
+    <h3>Plumber</h3>
   </div>
 
-  <!-- HEADER -->
-  <div class="header">
-    <div class="logo">🔧 FIXIT</div>
-
-    <div class="search">
-      <select>
-        <option>Plumber</option>
-        <option>Electrician</option>
-        <option>AC Repair</option>
-      </select>
-      <input placeholder="Enter location">
-      <button>Search</button>
-    </div>
+  <div class="card">
+    <span class="material-icons icon">electrical_services</span>
+    <h3>Electrician</h3>
   </div>
 
-  <!-- GRID -->
-  <div class="grid">
+  <div class="card">
+    <span class="material-icons icon">ac_unit</span>
+    <h3>AC Repair</h3>
+  </div>
 
-    <div class="card">
-      <h3>Services</h3>
-      <div class="service"><span class="material-icons">plumbing</span> Plumbing</div>
-      <div class="service"><span class="material-icons">electrical_services</span> Electrician</div>
-      <div class="service"><span class="material-icons">ac_unit</span> AC Repair</div>
-    </div>
-
-    <div class="card">
-      <h3>Nearby Providers</h3>
-      <div id="map"></div>
-    </div>
-
+  <div class="card">
+    <span class="material-icons icon">handyman</span>
+    <h3>Carpenter</h3>
   </div>
 
 </div>
 
-<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_KEY"></script>
-<script>
-navigator.geolocation.getCurrentPosition(p=>{
-  new google.maps.Map(document.getElementById("map"),{
-    center:{lat:p.coords.latitude,lng:p.coords.longitude},
-    zoom:14
-  })
-})
-</script>
+</div>
+</body>
+</html>
+`);
+});
+
+/* ================= SERVER ================= */
+
+app.listen(5000,'0.0.0.0',()=>{
+  console.log("Server running on port 5000");
+});
+[1:40 am, 06/02/2026] ujjawal jha: /* =====================================
+   FIXIT PRO 2.0 – MODERN UI EDITION
+   New Font + Animated Gradient + Glass
+===================================== */
+
+const express = require("express");
+const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+
+const app = express();
+app.use(express.json());
+
+const SECRET = "fixit-secret";
+
+/* ================= DATABASE ================= */
+
+mongoose.connect(
+  process.env.MONGO_URL || "mongodb://127.0.0.1:27017/fixitUltimate"
+);
+
+/* ================= MODELS ================= */
+
+const User = mongoose.model("User", {
+  name: String,
+  email: String,
+  password: String,
+});
+
+const Provider = mongoose.model("Provider", {
+  name: String,
+  service: String,
+});
+
+/* ================= AUTH ================= */
+
+app.post("/signup", async (req, res) => {
+  const hash = await bcrypt.hash(req.body.password, 10);
+  await User.create({ ...req.body, password: hash });
+  res.send("Signup Success");
+});
+
+app.post("/login", async (req, res) => {
+  const u = await User.findOne({ email: req.body.email });
+  if (!u) return res.sendStatus(401);
+
+  const ok = await bcrypt.compare(req.body.password, u.password);
+  if (!ok) return res.sendStatus(401);
+
+  const token = jwt.sign({ id: u._id }, SECRET);
+  res.json({ token });
+});
+
+/* ================= FRONTEND ================= */
+
+app.get("/", (req, res) => {
+  res.send(`
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>Fixit Pro</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- 🔥 NEW GOOGLE FONTS -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Orbitron:wght@700&display=swap" rel="stylesheet">
+
+<style>
+
+/* ================= RESET ================= */
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:'Poppins',sans-serif;
+}
+
+/* ================= ANIMATED BG ================= */
+body{
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+
+  background: linear-gradient(-45deg,#667eea,#764ba2,#00c6ff,#0072ff);
+  background-size:400% 400%;
+  animation:bgMove 10s infinite linear;
+}
+
+@keyframes bgMove{
+  0%{background-position:0% 50%}
+  50%{background-position:100% 50%}
+  100%{background-position:0% 50%}
+}
+
+/* ================= GLASS CONTAINER ================= */
+.app{
+  width:95%;
+  max-width:1100px;
+  padding:40px;
+  border-radius:25px;
+
+  background:rgba(255,255,255,.12);
+  backdrop-filter:blur(20px);
+
+  box-shadow:0 30px 60px rgba(0,0,0,.35);
+
+  color:white;
+  text-align:center;
+}
+
+/* ================= LOGO FONT ================= */
+.logo{
+  font-family:'Orbitron',sans-serif;
+  font-size:42px;
+  letter-spacing:3px;
+  font-weight:bold;
+  margin-bottom:10px;
+}
+
+/* ================= SUBTEXT ================= */
+.subtitle{
+  opacity:.85;
+  margin-bottom:30px;
+}
+
+/* ================= GRID ================= */
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  gap:18px;
+}
+
+/* ================= CARDS ================= */
+.card{
+  padding:25px;
+  border-radius:18px;
+
+  background:rgba(255,255,255,.25);
+  backdrop-filter:blur(10px);
+
+  font-weight:600;
+  cursor:pointer;
+
+  transition:.3s;
+}
+
+.card:hover{
+  transform:translateY(-8px) scale(1.05);
+  background:white;
+  color:#333;
+}
+
+/* ================= BUTTON ================= */
+.btn{
+  margin-top:35px;
+  padding:12px 30px;
+  border:none;
+  border-radius:12px;
+
+  font-weight:600;
+  background:white;
+  color:#333;
+  cursor:pointer;
+
+  transition:.3s;
+}
+
+.btn:hover{
+  transform:scale(1.08);
+}
+
+/* ================= FOOTER ================= */
+.footer{
+  margin-top:25px;
+  font-size:13px;
+  opacity:.7;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+  <div class="logo">🔧 FIXIT PRO</div>
+  <div class="subtitle">Professional Home Services Platform</div>
+
+  <div class="grid">
+    <div class="card">🚿 Plumber</div>
+    <div class="card">🔌 Electrician</div>
+    <div class="card">❄️ AC Repair</div>
+    <div class="card">🪵 Carpenter</div>
+    <div class="card">🎨 Painter</div>
+    <div class="card">🧹 Cleaning</div>
+  </div>
+
+  <button class="btn" onclick="alert('Backend Connected Successfully 🚀')">
+    Test Server
+  </button>
+
+  <div class="footer">Fixit Pro © 2026 | Modern UI Version</div>
+
+</div>
 
 </body>
 </html>
@@ -296,8 +402,8 @@ navigator.geolocation.getCurrentPosition(p=>{
 
 /* ================= SERVER ================= */
 
-app.listen(5000, '0.0.0.0', () => {
-  console.log("🚀 Server running on:");
-  console.log("Local  : http://localhost:5000");
-  console.log("Network: http://192.168.1.59:5000");
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+  console.log("Server running on port " + PORT);
 });
